@@ -1,16 +1,15 @@
-import forecast
+import forecast as weatherForcast
 import pylunar
-from datetime import datetime
+import json
+from datetime import datetime, timedelta, timezone
+
 ####################
 # Constants
-GLENS_FALLS_LAT = (43, 30, 95)
-GLENS_FALLS_LONG = (-73, 64, 40)
 ####################
 
-Moon = pylunar.MoonInfo(GLENS_FALLS_LAT, GLENS_FALLS_LONG)
+forecast = weatherForcast.forecast()
 
-# print(datetime(datetime.year, datetime.month, datetime.day))
-# Moon.update()
-# print(Moon.age())
 
-# print(forecast.forecast())
+
+with open('forecast.json', 'w') as outfile:
+    json.dump(forecast, outfile, indent=4)
