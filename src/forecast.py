@@ -61,10 +61,16 @@ def moon_info(time=datetime.now().timestamp(), tz='US/Eastern', lat=GLENS_FALLS_
     lat_string_pair = "{:.4f}".format(lat).split('.')
     lng_string_pair = "{:.4f}".format(lng).split('.')
 
-    lat_tuple = (int(lat_string_pair[0]), int(
-        lat_string_pair[1][:2]), int(lat_string_pair[1][2:]))
-    lng_tuple = (int(lng_string_pair[0]), int(
-        lng_string_pair[1][:2]), int(lng_string_pair[1][2:]))
+    lat_tuple = (
+        int(lat_string_pair[0]),
+        int(lat_string_pair[1][:2]),
+        int(lat_string_pair[1][2:])
+    )
+    lng_tuple = (
+        int(lng_string_pair[0]),
+        int(lng_string_pair[1][:2]),
+        int(lng_string_pair[1][2:])
+    )
 
     time = datetime.fromtimestamp(time)
     Moon = pylunar.MoonInfo(lat_tuple, lng_tuple)
@@ -111,13 +117,13 @@ def forecast(lat=GLENS_FALLS_LAT, lng=GLENS_FALLS_LONG):
             hour['dark'] = (hour['time'] < current_sun_times['astronomical_twilight_begin']
                             or hour['time'] > current_sun_times['astronomical_twilight_end'])
 
-            hour['moonVisible'] = (hour['time'] >= day['moon_info']['rise'] 
+            hour['moonVisible'] = (hour['time'] >= day['moon_info']['rise']
                 and hour['time'] <= day['moon_info']['set'])
 
             if (not hour['dark']):
                 hour['viability'] = 0
             else:
-                hour['viability'] = 1 - (hour['cloudCover'] 
+                hour['viability'] = 1 - (hour['cloudCover']
                     + day['moon_info']['frac'])/2 if hour['moonVisible'] else 1 - hour['cloudCover']
 
     if (times_updated):
