@@ -15,5 +15,5 @@ The python virtual environment is managed by pipenv. To create the virtual envir
 To activate it, run `pipenv shell`.
 
 ## APIs used
---* [DarkSky API](https://darksky.net/dev)
---* [Sunrise Sunset API](https://sunrise-sunset.org)
+* [DarkSky API](https://darksky.net/dev)
+* [Sunrise Sunset API](https://sunrise-sunset.org)
