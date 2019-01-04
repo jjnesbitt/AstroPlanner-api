@@ -11,8 +11,10 @@ pylunar == 0.5.1
 python-dateutil == 2.7.5
 
 # forecast.py: 1
-requests == 2.18.4
+requests == 2.20.0
 
 # forecast.py: 4
 # main.py: 3
 tzlocal == 1.5.1
+
+urllib3 == 1.23
