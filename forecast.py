@@ -2,7 +2,9 @@ import requests
 import json
 import pylunar
 import tzlocal
-from datetime import datetime
+import pytz
+from datetime import datetime, time
+from dateutil import parser
 from credentials import DARK_SKY_SECRET
 
 #######################
@@ -14,15 +16,17 @@ DARK_SKY_API_PATH = 'https://api.darksky.net/forecast/' + DARK_SKY_SECRET
 GLENS_FALLS_PATH = '/' + str(GLENS_FALLS_LAT) + ',' + str(GLENS_FALLS_LONG)
 
 SUNRISE_SUNSET_BASE_PATH = 'https://api.sunrise-sunset.org/json'
+SUNRISE_SUNSET_FILE = './sun_times.json'
+ONE_DAY_SECONDS = 86400
 #######################
-
 
 def raw_forecast(path=GLENS_FALLS_PATH):
     res = None
     params = {'extend': 'hourly', 'exclude': ['minutely']}
     headers = {'content-encoding': 'gzip'}
     try:
-        res = requests.get(DARK_SKY_API_PATH + path, params=params, headers=headers)
+        res = requests.get(DARK_SKY_API_PATH + path,
+                           params=params, headers=headers)
         return json.loads(res.text)
     except:
         print("Error retrieving forcast")
@@ -30,29 +34,58 @@ def raw_forecast(path=GLENS_FALLS_PATH):
 
 
 def get_sunrise_sunset_info(time=datetime.now(), lat=GLENS_FALLS_LAT, lng=GLENS_FALLS_LONG):
-    # NEED TO CONVERT RESPONSE TO LOCAL TIME
-
     res = None
-    params = {'lat': lat, 'lng': lng, 'date': time.isoformat()}
-    
+    params = {'lat': lat, 'lng': lng, 'date': time.isoformat(), 'formatted': 0}
+    error = False
+
     try:
         res = requests.get(SUNRISE_SUNSET_BASE_PATH, params=params)
-        return json.loads(res.text)
     except:
+        error = True
+
+    res = json.loads(res.text)
+
+    if (error or res['status'] != 'OK'):
         print("Error retrieving forcast")
         return None
+
+    res = res['results']
+    res = {k: parser.parse(v).timestamp() for k, v in res.items() if k != 'day_length'}
+    return res
 
 
 def forecast(path=GLENS_FALLS_PATH):
     res = raw_forecast(path)
-
     if (res == None):
         return None
 
+    times_updated = False
+    try:
+        sun_times = json.load(open(SUNRISE_SUNSET_FILE, 'r'))
+    except:
+        sun_times = {}
+
     for day in res['daily']['data']:
-        day['hours'] = list(filter(lambda x: x['time'] > day['time'] and x['time'] < day['time'] + 86400, res['hourly']['data']))
+        currentDay = datetime.fromtimestamp(day['sunriseTime'])
+        currentDateStr = str(currentDay.date())
+
+        if currentDateStr not in sun_times:
+            print("NEW SUNRISE API CALL")
+            times_updated = True
+            sun_times[currentDateStr] = get_sunrise_sunset_info(
+                time=currentDay)
+        
+        current_sun_times = sun_times[currentDateStr]
+        day['hours'] = list(filter(lambda x: x['time'] >= day['time']
+                                   and x['time'] < day['time'] + ONE_DAY_SECONDS, res['hourly']['data']))
+        
         for hour in day['hours']:
-            hour['dark'] = (hour['time'] < (day['sunriseTime'] - 10800) or hour['time'] > (day['sunsetTime'] + 10800))
+            hour['dark'] = (hour['time'] < current_sun_times['astronomical_twilight_begin']
+                            or hour['time'] > current_sun_times['astronomical_twilight_end'])
+
+    if (times_updated):
+        print("NEW WRITE")
+        json.dump(sun_times, open(SUNRISE_SUNSET_FILE, 'w'), indent=4)
 
     return res
 
@@ -61,8 +94,10 @@ def moonInfo(time=datetime.now().timestamp(), lat=GLENS_FALLS_LAT, lng=GLENS_FAL
     lat_string_pair = "{:.4f}".format(lat).split('.')
     lng_string_pair = "{:.4f}".format(lng).split('.')
 
-    lat_tuple = (int(lat_string_pair[0]), int(lat_string_pair[1][:2]), int(lat_string_pair[1][2:]))
-    lng_tuple = (int(lng_string_pair[0]), int(lng_string_pair[1][:2]), int(lng_string_pair[1][2:]))
+    lat_tuple = (int(lat_string_pair[0]), int(
+        lat_string_pair[1][:2]), int(lat_string_pair[1][2:]))
+    lng_tuple = (int(lng_string_pair[0]), int(
+        lng_string_pair[1][:2]), int(lng_string_pair[1][2:]))
 
     time = datetime.fromtimestamp(time)
     Moon = pylunar.MoonInfo(lat_tuple, lng_tuple)
