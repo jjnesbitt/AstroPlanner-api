@@ -9,8 +9,11 @@ This mean the sky is clear and clouds are absent and the moon isn't interfering 
 The code will take data from multiple sources and display to the user if both the above conditions are true.
 
 
-Credentials are stored in `credentials.py`. The variable in this file that stores the Dark
-Sky Secret is `DARK_SKY_SECRET`.
+Credentials are supplied in `credentials.py`, with a variable named`DARK_SKY_SECRET`.
 
 The python virtual environment is managed by pipenv. To create the virtual environment, run `pipenv install`.
-To activate it, run `pipenv shell`
+To activate it, run `pipenv shell`.
+
+## APIs used
+--* [DarkSky API](https://darksky.net/dev)
+--* [Sunrise Sunset API](https://sunrise-sunset.org)
