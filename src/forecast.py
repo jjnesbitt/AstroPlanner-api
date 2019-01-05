@@ -15,7 +15,7 @@ GLENS_FALLS_LONG = -73.6440
 DARK_SKY_API_PATH = 'https://api.darksky.net/forecast/' + DARK_SKY_SECRET
 
 SUNRISE_SUNSET_BASE_PATH = 'https://api.sunrise-sunset.org/json'
-SUNRISE_SUNSET_FILE = './data/sun_times.json'
+SUNRISE_SUNSET_FILE = '../data/sun_times.json'
 ONE_DAY_SECONDS = 86400
 #######################
 

@@ -7,11 +7,18 @@ import forecast as weatherForcast
 
 ####################
 # Constants
-FORECAST_FILE = './data/forecast.json'
+FORECAST_FILE = '../data/forecast.json'
 ####################
 
-forecast = weatherForcast.forecast()
-    
-with open(FORECAST_FILE, 'w') as outfile:
+def main():
+    forecast = weatherForcast.forecast()
     del(forecast['hourly'])
-    json.dump(forecast, outfile, indent=4)
+
+    with open(FORECAST_FILE, 'w') as outfile:
+        json.dump(forecast, outfile, indent=4)
+
+    return json.dumps(forecast, indent=4)
+
+
+if __name__ == '__main__':
+    main()
