@@ -1,4 +1,4 @@
-# AstroPlanner
+# AstroPlanner-api
 Code by Jake Nesbitt
 
 A project to predict the quality of the night-time sky conditions for astrophotography using weather forecasts and lunar phases.
