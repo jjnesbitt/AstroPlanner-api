@@ -73,14 +73,22 @@ def moon_info(time=datetime.now().timestamp(), tz='US/Eastern', lat=GLENS_FALLS_
     )
 
     time = datetime.fromtimestamp(time)
+    timezone = pytz.timezone(tz)
     Moon = pylunar.MoonInfo(lat_tuple, lng_tuple)
     Moon.update(time.utctimetuple()[:6])
 
     rise_set_times = Moon.rise_set_times(tz)
     fractional_phase = Moon.fractional_phase()
+    print(rise_set_times)
 
-    info = {x[0]: datetime(*x[1], 0, tzlocal.get_localzone()).timestamp()
-            for x in rise_set_times}
+    info = {}
+    for k, v in rise_set_times:
+        anomalies = ['Does not rise', 'Does not set']
+        if v in anomalies:
+            info[k] = None
+        else:
+            info[k] = datetime(*v, 0, timezone).timestamp()
+
     info['frac'] = fractional_phase
     return info
 

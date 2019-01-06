@@ -10,8 +10,11 @@ import forecast as weatherForcast
 FORECAST_FILE = '../data/forecast.json'
 ####################
 
-def main():
-    forecast = weatherForcast.forecast()
+def main(params):
+    if ('lat' not in params or 'lng' not in params):
+        return json.dumps({'status': "Error", 'message': "Not enough parameters included"}, indent=4)
+
+    forecast = weatherForcast.forecast(lat=params['lat'], lng=params['lng'])
     del(forecast['hourly'])
 
     with open(FORECAST_FILE, 'w') as outfile:
