@@ -36,7 +36,7 @@ def raw_forecast(lat=GLENS_FALLS_LAT, lng=GLENS_FALLS_LONG):
 
 def get_sunrise_sunset_info(currentTime=datetime.now(), lat=GLENS_FALLS_LAT, lng=GLENS_FALLS_LONG):
     res = None
-    params = {'lat': lat, 'lng': lng, 'date': currentTime.isoformat(), 'formatted': 0}
+    params = {'lat': lat, 'lng': lng, 'date': currentTime.date().isoformat(), 'formatted': 0}
     error = False
 
     try:
@@ -108,7 +108,7 @@ def forecast(lat=GLENS_FALLS_LAT, lng=GLENS_FALLS_LONG):
         error = res['error']
 
     ###
-
+    
     if (error != None):
         return {'status': status, 'error': error}
 
@@ -138,6 +138,7 @@ def forecast(lat=GLENS_FALLS_LAT, lng=GLENS_FALLS_LONG):
             else:
                 hour['viability'] = 1 - (hour['cloudCover']
                     + day['moon_info']['frac'])/2 if hour['moonVisible'] else 1 - hour['cloudCover']
+        
 
     res['status'] = status
     return res
