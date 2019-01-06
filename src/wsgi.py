@@ -1,5 +1,5 @@
-import main as forecast
 import urllib
+import main as forecast
 
 def application(environ, start_response):
     params = urllib.parse.parse_qs(environ['QUERY_STRING'])

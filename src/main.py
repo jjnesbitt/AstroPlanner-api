@@ -1,13 +1,10 @@
 import json
-from datetime import datetime, timedelta, timezone
-import tzlocal
 
 # Self Imports
 import forecast as weatherForcast
 
 ####################
 # Constants
-FORECAST_FILE = '../data/forecast.json'
 ####################
 
 def main(params):
@@ -16,16 +13,13 @@ def main(params):
     lat = params['lat'][0]
     lng = params['lng'][0]
 
-    forecast = weatherForcast.forecast(lat=params['lat'][0], lng=params['lng'][0])
+    forecast = weatherForcast.forecast(lat=lat, lng=lng)
     if ('error' in forecast):
         return json.dumps(forecast, indent=4)
-    
-    del(forecast['hourly'])
-    # with open(FORECAST_FILE, 'w') as outfile:
-    #     json.dump(forecast, outfile, indent=4)
 
+    # del(forecast['daily'])
     return json.dumps(forecast, indent=4)
 
 
-if __name__ == '__main__':
-    main()
+# if __name__ == '__main__':
+#     main()

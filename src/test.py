@@ -11,10 +11,10 @@ import main
 GLENS_FALLS_LAT = 43.3095
 GLENS_FALLS_LONG = -73.6440
 
-start = time.time()
-res = main.main({'lat': [12.4444], 'lng': [21.3333]})
-end = time.time()
-print("runtime of main", end - start)
+# start = time.time()
+# res = main.main({'lat': [12.4444], 'lng': [21.3333]})
+# end = time.time()
+# print("runtime of main", end - start)
 
 start = time.time()
 res = forecast.forecast(lat=12.4444, lng=21.3333)

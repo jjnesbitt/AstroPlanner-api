@@ -1,5 +1,5 @@
-import requests
 import json
+import requests
 import pylunar
 import tzlocal
 import pytz
@@ -34,10 +34,10 @@ def raw_forecast(lat=GLENS_FALLS_LAT, lng=GLENS_FALLS_LONG):
         return None
 
 
-def get_sunrise_sunset_info(currentTime=datetime.now(), lat=GLENS_FALLS_LAT, lng=GLENS_FALLS_LONG):
+def get_sunrise_sunset_info(current_time=datetime.now(), lat=GLENS_FALLS_LAT, lng=GLENS_FALLS_LONG):
     res = None
     params = {'lat': lat, 'lng': lng,
-              'date': currentTime.date().isoformat(), 'formatted': 0}
+              'date': current_time.date().isoformat(), 'formatted': 0}
     error = False
 
     try:
@@ -57,7 +57,7 @@ def get_sunrise_sunset_info(currentTime=datetime.now(), lat=GLENS_FALLS_LAT, lng
     return res
 
 
-def get_moon_info(currentTime=datetime.now().timestamp(), tz='US/Eastern', lat=GLENS_FALLS_LAT, lng=GLENS_FALLS_LONG):
+def get_moon_info(current_time=datetime.now().timestamp(), tz='US/Eastern', lat=GLENS_FALLS_LAT, lng=GLENS_FALLS_LONG):
     lat_string_pair = "{:.4f}".format(lat).split('.')
     lng_string_pair = "{:.4f}".format(lng).split('.')
 
@@ -72,27 +72,25 @@ def get_moon_info(currentTime=datetime.now().timestamp(), tz='US/Eastern', lat=G
         int(lng_string_pair[1][2:])
     )
 
-    currentTime = datetime.fromtimestamp(currentTime)
-    timezone = pytz.timezone(tz)
+    current_time = datetime.fromtimestamp(current_time)
     Moon = pylunar.MoonInfo(lat_tuple, lng_tuple)
-    Moon.update(currentTime.utctimetuple()[:6])
+    Moon.update(current_time.utctimetuple()[:6])
 
     rise_set_times = Moon.rise_set_times(tz)
-    fractional_phase = Moon.fractional_phase()
 
     info = {}
     for k, v in rise_set_times:
-        if type(v) == str:
+        if isinstance(v, str):
             top = datetime.combine(
-                currentTime.date(), time(0, 0, 0)).timestamp()
+                current_time.date(), time(0, 0, 0)).timestamp()
             if k == 'rise':
                 info[k] = top
             elif k == 'set':
                 info[k] = top + ONE_DAY_SECONDS
         else:
-            info[k] = datetime(*v, 0, timezone).timestamp()
+            info[k] = datetime(*v, 0, pytz.timezone(tz)).timestamp()
 
-    info['frac'] = fractional_phase
+    info['frac'] = Moon.fractional_phase()
     return info
 
 
@@ -101,7 +99,7 @@ def forecast(lat=GLENS_FALLS_LAT, lng=GLENS_FALLS_LONG):
     error = None
 
     res = raw_forecast(lat, lng)
-    if (res == None):
+    if (res is None):
         status = 'Error'
         error = "Error Retrieving Forecast"
 
@@ -117,56 +115,32 @@ def forecast(lat=GLENS_FALLS_LAT, lng=GLENS_FALLS_LONG):
     sun_times = {}
     moon_info = {}
     for day in res['daily']['data']:
-        currentTime = datetime.fromtimestamp(day['sunriseTime']).astimezone(pytz.timezone(res['timezone']))
-        # currentTime = datetime.fromtimestamp(day['time'])
-        currentDateStr = str(currentTime.date())
+        current_time = datetime.fromtimestamp(
+            day['sunriseTime']).astimezone(pytz.timezone(res['timezone']))
+        current_date_str = str(current_time.date())
 
-        # day['moon_info'] = get_moon_info(
-        #     currentTime=day['sunriseTime'], tz=res['timezone'])
-        
-        moon_info[currentDateStr] = get_moon_info(
-            currentTime=day['sunriseTime'], tz=res['timezone'])
+        moon_info[current_date_str] = get_moon_info(
+            current_time=day['sunriseTime'], tz=res['timezone'])
 
-        sun_times[currentDateStr] = get_sunrise_sunset_info(
-            currentTime=currentTime)
+        sun_times[current_date_str] = get_sunrise_sunset_info(
+            current_time=current_time)
 
-        # current_sun_times = sun_times[currentDateStr]
-        
-        # day['hours'] = list(filter(lambda x: x['time'] >= day['time']
-        #                            and x['time'] < day['time'] + ONE_DAY_SECONDS, res['hourly']['data']))
-
-        # for hour in day['hours']:
-        #     hour['dark'] = (hour['time'] < current_sun_times['astronomical_twilight_begin']
-        #                     or hour['time'] > current_sun_times['astronomical_twilight_end'])
-
-        #     hour['moonVisible'] = (hour['time'] >= day['moon_info']['rise']
-        #                            and hour['time'] <= day['moon_info']['set'])
-
-        #     if (not hour['dark']):
-        #         hour['viability'] = 0
-        #     else:
-        #         hour['viability'] = 1 - (hour['cloudCover']
-        #                                  + day['moon_info']['frac'])/2 if hour['moonVisible'] else 1 - hour['cloudCover']
-
-    # print(json.dumps(sun_times, indent=4))
     for hour in res['hourly']['data']:
-        currentTime = datetime.fromtimestamp(hour['time'])
-        # top = datetime.combine(currentTime.date(), time(0, 0, 0)).timestamp()
-        currentDayStr = str(currentTime.date())
-        currentMoonInfo = moon_info[currentDayStr]
+        current_time = datetime.fromtimestamp(hour['time'])
+        current_date_str = str(current_time.date())
+        current_moon_info = moon_info[current_date_str]
 
-        hour['dark'] = (hour['time'] < sun_times[currentDayStr]['astronomical_twilight_begin']
-            or hour['time'] > sun_times[currentDayStr]['astronomical_twilight_end'])
-        
-        hour['moonVisible'] = (hour['time'] >= currentMoonInfo['rise']
-                        and hour['time'] <= currentMoonInfo['set'])
-        
+        hour['dark'] = (hour['time'] < sun_times[current_date_str]['astronomical_twilight_begin']
+            or hour['time'] > sun_times[current_date_str]['astronomical_twilight_end'])
+
+        hour['moonVisible'] = (hour['time'] >= current_moon_info['rise']
+            and hour['time'] <= current_moon_info['set'])
+
         if (not hour['dark']):
-                hour['viability'] = 0
+            hour['viability'] = 0
         else:
             hour['viability'] = 1 - (hour['cloudCover']
-                + currentMoonInfo['frac'])/2 if hour['moonVisible'] else 1 - hour['cloudCover']
-
+                                     + current_moon_info['frac'])/2 if hour['moonVisible'] else 1 - hour['cloudCover']
 
     res['status'] = status
     return res
