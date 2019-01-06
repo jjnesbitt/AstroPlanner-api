@@ -31,13 +31,12 @@ def raw_forecast(lat=GLENS_FALLS_LAT, lng=GLENS_FALLS_LONG):
                            params=params, headers=headers)
         return json.loads(res.text)
     except:
-        print("Error retrieving forcast")
         return None
 
 
-def get_sunrise_sunset_info(time=datetime.now(), lat=GLENS_FALLS_LAT, lng=GLENS_FALLS_LONG):
+def get_sunrise_sunset_info(currentTime=datetime.now(), lat=GLENS_FALLS_LAT, lng=GLENS_FALLS_LONG):
     res = None
-    params = {'lat': lat, 'lng': lng, 'date': time.isoformat(), 'formatted': 0}
+    params = {'lat': lat, 'lng': lng, 'date': currentTime.isoformat(), 'formatted': 0}
     error = False
 
     try:
@@ -57,7 +56,7 @@ def get_sunrise_sunset_info(time=datetime.now(), lat=GLENS_FALLS_LAT, lng=GLENS_
     return res
 
 
-def moon_info(time=datetime.now().timestamp(), tz='US/Eastern', lat=GLENS_FALLS_LAT, lng=GLENS_FALLS_LONG):
+def moon_info(currentTime=datetime.now().timestamp(), tz='US/Eastern', lat=GLENS_FALLS_LAT, lng=GLENS_FALLS_LONG):
     lat_string_pair = "{:.4f}".format(lat).split('.')
     lng_string_pair = "{:.4f}".format(lng).split('.')
 
@@ -72,20 +71,22 @@ def moon_info(time=datetime.now().timestamp(), tz='US/Eastern', lat=GLENS_FALLS_
         int(lng_string_pair[1][2:])
     )
 
-    time = datetime.fromtimestamp(time)
+    currentTime = datetime.fromtimestamp(currentTime)
     timezone = pytz.timezone(tz)
     Moon = pylunar.MoonInfo(lat_tuple, lng_tuple)
-    Moon.update(time.utctimetuple()[:6])
+    Moon.update(currentTime.utctimetuple()[:6])
 
     rise_set_times = Moon.rise_set_times(tz)
     fractional_phase = Moon.fractional_phase()
-    print(rise_set_times)
 
     info = {}
     for k, v in rise_set_times:
-        anomalies = ['Does not rise', 'Does not set']
-        if v in anomalies:
-            info[k] = None
+        if type(v) == str:
+            top = datetime.combine(currentTime.date(), time(0, 0, 0)).timestamp()
+            if k == 'rise':
+                info[k] = top
+            elif k == 'set':
+                info[k] = top + ONE_DAY_SECONDS
         else:
             info[k] = datetime(*v, 0, timezone).timestamp()
 
@@ -94,28 +95,32 @@ def moon_info(time=datetime.now().timestamp(), tz='US/Eastern', lat=GLENS_FALLS_
 
 
 def forecast(lat=GLENS_FALLS_LAT, lng=GLENS_FALLS_LONG):
+    status = 'OK'
+    error = None
+
     res = raw_forecast(lat, lng)
     if (res == None):
-        return None
+        status = 'Error'
+        error = "Error Retrieving Forecast"
 
-    times_updated = False
-    try:
-        sun_times = json.load(open(SUNRISE_SUNSET_FILE, 'r'))
-    except:
-        sun_times = {}
+    elif ('error' in res):
+        status = 'Error'
+        error = res['error']
 
+    ###
+
+    if (error != None):
+        return {'status': status, 'error': error}
+
+    sun_times = {}
     for day in res['daily']['data']:
         currentDay = datetime.fromtimestamp(day['sunriseTime'])
         currentDateStr = str(currentDay.date())
 
         day['moon_info'] = moon_info(
-            time=day['sunriseTime'], tz=res['timezone'])
+            currentTime=day['sunriseTime'], tz=res['timezone'])
 
-        if currentDateStr not in sun_times:
-            print("NEW SUNRISE API CALL")
-            times_updated = True
-            sun_times[currentDateStr] = get_sunrise_sunset_info(
-                time=currentDay)
+        sun_times[currentDateStr] = get_sunrise_sunset_info(currentTime=currentDay)
 
         current_sun_times = sun_times[currentDateStr]
         day['hours'] = list(filter(lambda x: x['time'] >= day['time']
@@ -134,8 +139,5 @@ def forecast(lat=GLENS_FALLS_LAT, lng=GLENS_FALLS_LONG):
                 hour['viability'] = 1 - (hour['cloudCover']
                     + day['moon_info']['frac'])/2 if hour['moonVisible'] else 1 - hour['cloudCover']
 
-    if (times_updated):
-        print("NEW WRITE")
-        json.dump(sun_times, open(SUNRISE_SUNSET_FILE, 'w'), indent=4)
-
+    res['status'] = status
     return res

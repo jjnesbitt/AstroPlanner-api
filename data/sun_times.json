@@ -97,5 +97,16 @@
         "nautical_twilight_end": 1547333293.0,
         "astronomical_twilight_begin": 1547289817.0,
         "astronomical_twilight_end": 1547335349.0
+    },
+    "2019-01-13": {
+        "sunrise": 1547382271.0,
+        "sunset": 1547415739.0,
+        "solar_noon": 1547399005.0,
+        "civil_twilight_begin": 1547380375.0,
+        "civil_twilight_end": 1547417635.0,
+        "nautical_twilight_begin": 1547378255.0,
+        "nautical_twilight_end": 1547419755.0,
+        "astronomical_twilight_begin": 1547376201.0,
+        "astronomical_twilight_end": 1547421809.0
     }
 }
