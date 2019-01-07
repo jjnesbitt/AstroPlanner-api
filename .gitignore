@@ -108,3 +108,4 @@ venv.bak/
 # USER ADDED
 
 credentials.py
+config/
