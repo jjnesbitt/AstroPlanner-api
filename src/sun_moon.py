@@ -25,7 +25,7 @@ def moon_info(lat, lng, time=None):
     time = ts.utc(time)
 
     moon = planets['moon']
-    loc = earth + Topos(latitude=lat, longitude=lng)
+    loc = earth + Topos(latitude_degrees=lat, longitude_degrees=lng)
     moon_loc = loc.at(time).observe(moon).apparent()
     moon_alt, _, _ = moon_loc.altaz()
 
@@ -45,7 +45,7 @@ def sun_info(lat, lng, time=None):
     time = ts.utc(time)
 
     sun = planets['sun']
-    loc = earth + Topos(latitude=lat, longitude=lng)
+    loc = earth + Topos(latitude_degrees=lat, longitude_degrees=lng)
     sun_loc = loc.at(time).observe(sun).apparent()
     sun_alt, _, _ = sun_loc.altaz()
 
