@@ -14,6 +14,7 @@ pylunar = "==0.5.1"
 tzlocal = "==1.5.1"
 urllib3 = "==1.23"
 pylint = "*"
+skyfield = "*"
 
 [requires]
 python_version = "3.6"
