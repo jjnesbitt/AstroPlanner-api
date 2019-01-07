@@ -109,3 +109,4 @@ venv.bak/
 
 credentials.py
 config/
+data/skyfield

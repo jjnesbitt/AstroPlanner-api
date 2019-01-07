@@ -15,6 +15,7 @@ tzlocal = "==1.5.1"
 urllib3 = "==1.23"
 pylint = "*"
 skyfield = "*"
+sphinx = "*"
 
 [requires]
 python_version = "3.6"
