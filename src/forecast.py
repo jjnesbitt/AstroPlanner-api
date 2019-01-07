@@ -6,6 +6,7 @@ import pytz
 from datetime import datetime, time
 from dateutil import parser
 from credentials import DARK_SKY_SECRET
+from sun_moon import sun_moon_info
 
 #######################
 # Constants
@@ -112,35 +113,17 @@ def forecast(lat=GLENS_FALLS_LAT, lng=GLENS_FALLS_LONG):
     if (error != None):
         return {'status': status, 'error': error}
 
-    sun_times = {}
-    moon_info = {}
-    for day in res['daily']['data']:
-        current_time = datetime.fromtimestamp(
-            day['sunriseTime']).astimezone(pytz.timezone(res['timezone']))
-        current_date_str = str(current_time.date())
-
-        moon_info[current_date_str] = get_moon_info(
-            current_time=day['sunriseTime'], tz=res['timezone'])
-
-        sun_times[current_date_str] = get_sunrise_sunset_info(
-            current_time=current_time)
-
     for hour in res['hourly']['data']:
-        current_time = datetime.fromtimestamp(hour['time'])
-        current_date_str = str(current_time.date())
-        current_moon_info = moon_info[current_date_str]
+        current_sun_moon_info = sun_moon_info(lat, lng, hour['time'])
 
-        hour['dark'] = (hour['time'] < sun_times[current_date_str]['astronomical_twilight_begin']
-            or hour['time'] > sun_times[current_date_str]['astronomical_twilight_end'])
-
-        hour['moonVisible'] = (hour['time'] >= current_moon_info['rise']
-            and hour['time'] <= current_moon_info['set'])
+        hour['dark'] = not current_sun_moon_info['sun']['above_astro_twilight']
+        hour['moonVisible'] = current_sun_moon_info['moon']['above_horizon']
 
         if (not hour['dark']):
             hour['viability'] = 0
         else:
             hour['viability'] = 1 - (hour['cloudCover']
-                                     + current_moon_info['frac'])/2 if hour['moonVisible'] else 1 - hour['cloudCover']
+                + current_sun_moon_info['moon']['frac'])/2 if hour['moonVisible'] else 1 - hour['cloudCover']
 
     res['status'] = status
     return res
