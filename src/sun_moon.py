@@ -32,7 +32,7 @@ def moon_info(lat, lng, time=None):
     frac = fraction_illuminated(planets, 'moon', time)
     return {
         'pos': moon_alt.degrees,
-        'above_horizon': moon_alt.degrees > 0,
+        'above_horizon': bool(moon_alt.degrees > 0),
         'frac': frac
     }
 

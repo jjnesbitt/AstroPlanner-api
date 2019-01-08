@@ -13,6 +13,12 @@ def main(params):
     lat = params['lat'][0]
     lng = params['lng'][0]
 
+    try:
+        lat = float(lat)
+        lng = float(lng)
+    except ValueError:
+        return json.dumps({'status': "Error", 'error': "Latitude and Longitude must be floats"}, indent=4)
+
     forecast = weatherForcast.forecast(lat=lat, lng=lng)
     if ('error' in forecast):
         return json.dumps(forecast, indent=4)
