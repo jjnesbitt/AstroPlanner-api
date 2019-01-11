@@ -23,8 +23,9 @@ GLENS_FALLS_LONG = -73.6440
 # print("runtime of raw_forecast", end - start)
 
 start = time.time()
-res = sun_moon.sun_moon_info(lat=GLENS_FALLS_LAT, lng=GLENS_FALLS_LONG)
+res = sun_moon.sun_moon_info(lat=GLENS_FALLS_LAT, lng=GLENS_FALLS_LONG, startTime=datetime.now().timestamp())
 end = time.time()
+print(res)
 print("runtime of sun_moon_info", end - start)
 
 

@@ -11,14 +11,15 @@ planets = load('./de421.bsp')
 
 earth = planets['earth']
 
+ONE_DAY_SECONDS = 86400
 
 '''
 lat, lng should be float values
 time should be a unix timestamp
 '''
 
-def body_above_angle(ephemeris, body, angle, topos):
 
+def body_above_angle(ephemeris, body, angle, topos):
     """Build a function of time that returns whether the specified body is above the desired angle.
 
     The function that this returns will expect a single argument that is
@@ -37,54 +38,91 @@ def body_above_angle(ephemeris, body, angle, topos):
     is_body_up_at.rough_period = 0.5  # twice a day
     return is_body_up_at
 
-def moon_info(lat, lng, time=None):
-    if (time == None):
-        time = ts.now().astimezone(pytz.utc)
-    else:
-        time = datetime.fromtimestamp(time).astimezone(pytz.utc)
-    time = ts.utc(time)
 
-    moon = planets['moon']
-    loc = earth + Topos(latitude_degrees=lat, longitude_degrees=lng)
-    moon_loc = loc.at(time).observe(moon).apparent()
-    moon_alt, _, _ = moon_loc.altaz()
+def moon_info(lat, lng, startTime, endTime=None, ANGLE_THRESHOLD=-0.8333):
+    """Returns information about the moon, between the start and end time. 
+    If endTime is not specified, the passed startTime will be treated as the start of
+    the day, and the end time will be 24 hours after the startTime. Start and End times 
+    should be unix timestamps.
+    
+    The functions returns an array of rise and set times, relative to the moon rise and set.
+    """
 
-    frac = almanac.fraction_illuminated(planets, 'moon', time)
-    return {
-        'pos': moon_alt.degrees,
-        'above_horizon': bool(moon_alt.degrees > 0),
-        'frac': frac
-    }
-
-
-def sun_info(lat, lng, timestamp=None):
-    if (timestamp == None):
-        timestamp = datetime.now().timestamp()
+    if (endTime == None):
+        # timestamp = datetime.now().timestamp()
         # time = ts.now().astimezone(pytz.utc)
+        endTime = startTime + ONE_DAY_SECONDS
 
-    time = datetime.fromtimestamp(timestamp).astimezone(pytz.utc)
-    # time2 = datetime.fromtimestamp(timestamp + 500000).astimezone(pytz.utc)
+    time = datetime.fromtimestamp(startTime).astimezone(pytz.utc)
+    time2 = datetime.fromtimestamp(endTime).astimezone(pytz.utc)
+    
+    # Convert to one liner later
     time = ts.utc(time)
-    # time2 = ts.utc(time2)
+    time2 = ts.utc(time2)
 
-    sun = planets['sun']
+    # moon = planets['moon']
     earth_loc = Topos(latitude_degrees=lat, longitude_degrees=lng)
-    loc = earth + earth_loc
-    # t, y = almanac.find_discrete(time, time2, body_above_angle(planets, 'sun', -18, earth_loc))
+
+    t, y = almanac.find_discrete(time, time2, body_above_angle(planets, 'moon', ANGLE_THRESHOLD, earth_loc))
     # print([x.utc_datetime().isoformat() for x in t], y)
 
-    sun_loc = loc.at(time).observe(sun).apparent()
-    sun_alt, _, _ = sun_loc.altaz()
+    rise_times = [x.utc_datetime().timestamp() for i, x in enumerate(t) if y[i] == True]
+    set_times = [x.utc_datetime().timestamp() for i, x in enumerate(t) if y[i] == False]
+
+    # Deal with this
+    frac = almanac.fraction_illuminated(planets, 'moon', time)
 
     return {
-        'pos': sun_alt.degrees,
-        'above_astro_twilight': sun_alt.degrees > -18
+        'rise': rise_times,
+        'set': set_times
+        # 'frac': frac
     }
 
 
-def sun_moon_info(lat, lng, time=None):
+def sun_info(lat, lng, startTime, endTime=None, ANGLE_THRESHOLD=-18.0):
+    """Returns information about the sun, between the start and end time. 
+    If endTime is not specified, the passed startTime will be treated as the start of
+    the day, and the end time will be 24 hours after the startTime. Start and End times 
+    should be unix timestamps.
+    
+    The functions returns an array of rise and set times, relative to the astronomical twilight.
+    """
+    
+    # Determines the angle that the sun is checked against, returning True if it is above this, and False else.
+    # ANGLE_THRESHOLD = -18
+
+    if (endTime == None):
+        # timestamp = datetime.now().timestamp()
+        # time = ts.now().astimezone(pytz.utc)
+        endTime = startTime + ONE_DAY_SECONDS
+
+    time = datetime.fromtimestamp(startTime).astimezone(pytz.utc)
+    time2 = datetime.fromtimestamp(endTime).astimezone(pytz.utc)
+    
+    # Convert to one liner later
+    time = ts.utc(time)
+    time2 = ts.utc(time2)
+
+
+    # sun = planets['sun']
+    # loc = earth + earth_loc
+    earth_loc = Topos(latitude_degrees=lat, longitude_degrees=lng)
+
+    t, y = almanac.find_discrete(time, time2, body_above_angle(planets, 'sun', ANGLE_THRESHOLD, earth_loc))
+    # print([x.utc_datetime().isoformat() for x in t], y)
+
+    rise_times = [x.utc_datetime().timestamp() for i, x in enumerate(t) if y[i] == True]
+    set_times = [x.utc_datetime().timestamp() for i, x in enumerate(t) if y[i] == False]
+
+    return {
+        'rise': rise_times,
+        'set': set_times
+    }
+
+
+def sun_moon_info(lat, lng, startTime, endTime=None):
     info = {}
-    info['sun'] = sun_info(lat, lng, time)
-    info['moon'] = moon_info(lat, lng, time)
+    info['sun'] = sun_info(lat, lng, startTime, endTime)
+    info['moon'] = moon_info(lat, lng, startTime, endTime)
 
     return info
