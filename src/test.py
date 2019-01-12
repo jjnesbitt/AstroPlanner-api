@@ -24,9 +24,15 @@ GLENS_FALLS_LONG = -73.6440
 
 start = time.time()
 res = sun_moon.sun_moon_info(lat=GLENS_FALLS_LAT, lng=GLENS_FALLS_LONG, startTime=datetime.now().timestamp())
+moon_frac = sun_moon.moon_illuminated(datetime.now().timestamp())
 end = time.time()
 print(res)
 print("runtime of sun_moon_info", end - start)
 
+start = time.time()
+res = sun_moon.moon_illuminated(datetime.now().timestamp())
+end = time.time()
+print(res)
+print("runtime of moon_illuminated", end - start)
 
 #print(json.dumps(res, indent=4))

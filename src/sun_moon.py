@@ -39,6 +39,9 @@ def body_above_angle(ephemeris, body, angle, topos):
     return is_body_up_at
 
 
+def moon_illuminated(time):
+    return almanac.fraction_illuminated(planets, 'moon', ts.utc(datetime.fromtimestamp(time).astimezone(pytz.utc)))
+
 def moon_info(lat, lng, startTime, endTime=None, ANGLE_THRESHOLD=-0.8333):
     """Returns information about the moon, between the start and end time. 
     If endTime is not specified, the passed startTime will be treated as the start of
@@ -69,13 +72,9 @@ def moon_info(lat, lng, startTime, endTime=None, ANGLE_THRESHOLD=-0.8333):
     rise_times = [x.utc_datetime().timestamp() for i, x in enumerate(t) if y[i] == True]
     set_times = [x.utc_datetime().timestamp() for i, x in enumerate(t) if y[i] == False]
 
-    # Deal with this
-    frac = almanac.fraction_illuminated(planets, 'moon', time)
-
     return {
         'rise': rise_times,
         'set': set_times
-        # 'frac': frac
     }
 
 

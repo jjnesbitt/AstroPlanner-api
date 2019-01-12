@@ -114,8 +114,9 @@ def forecast(lat=GLENS_FALLS_LAT, lng=GLENS_FALLS_LONG):
         return {'status': status, 'error': error}
 
     for day in res['daily']['data']:
-        #Add calls
+        #Do something with moon calls
         continue
+        
 
     for hour in res['hourly']['data']:
         current_sun_moon_info = sun_moon_info(lat, lng, hour['time'])
