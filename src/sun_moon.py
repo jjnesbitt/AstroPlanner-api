@@ -4,6 +4,7 @@ import skyfield.almanac as almanac
 from skyfield.elementslib import osculating_elements_of
 from datetime import datetime
 import pytz
+import json
 
 load = Loader('../data/skyfield')
 ts = load.timescale()
@@ -52,8 +53,6 @@ def moon_info(lat, lng, startTime, endTime=None, ANGLE_THRESHOLD=-0.8333):
     """
 
     if (endTime == None):
-        # timestamp = datetime.now().timestamp()
-        # time = ts.now().astimezone(pytz.utc)
         endTime = startTime + DAY_S
 
     time = ts.utc(datetime.fromtimestamp(startTime).astimezone(pytz.utc))
@@ -61,13 +60,18 @@ def moon_info(lat, lng, startTime, endTime=None, ANGLE_THRESHOLD=-0.8333):
     earth_loc = Topos(latitude_degrees=lat, longitude_degrees=lng)
     t, y = almanac.find_discrete(time, time2, body_above_angle(planets, 'moon', ANGLE_THRESHOLD, earth_loc), epsilon=(1/DAY_S), num=6)
 
-    rise_times = [int(x.utc_datetime().timestamp()) for i, x in enumerate(t) if y[i] == True]
-    set_times = [int(x.utc_datetime().timestamp()) for i, x in enumerate(t) if y[i] == False]
+    times_dict = {}
+    for i, v in enumerate(t):
+        dt = v.utc_datetime()
+        dt_str = dt.date().isoformat()
 
-    return {
-        'rise': rise_times,
-        'set': set_times
-    }
+        if (dt_str not in times_dict):
+            times_dict[dt_str] = {}
+        
+        key = 'rise' if y[i] == True else 'set'
+        times_dict[dt_str][key] = int(dt.timestamp())
+    
+    return times_dict
 
 
 def sun_info(lat, lng, startTime, endTime=None, ANGLE_THRESHOLD=-18.0):
@@ -79,36 +83,26 @@ def sun_info(lat, lng, startTime, endTime=None, ANGLE_THRESHOLD=-18.0):
     The functions returns an array of rise and set times, relative to the astronomical twilight.
     """
     
-    # Determines the angle that the sun is checked against, returning True if it is above this, and False else.
-    # ANGLE_THRESHOLD = -18
-
     if (endTime == None):
-        # timestamp = datetime.now().timestamp()
-        # time = ts.now().astimezone(pytz.utc)
         endTime = startTime + DAY_S
 
-    time = datetime.fromtimestamp(startTime).astimezone(pytz.utc)
-    time2 = datetime.fromtimestamp(endTime).astimezone(pytz.utc)
-    
-    # Convert to one liner later
-    time = ts.utc(time)
-    time2 = ts.utc(time2)
-
-
-    # sun = planets['sun']
-    # loc = earth + earth_loc
+    time = ts.utc(datetime.fromtimestamp(startTime).astimezone(pytz.utc))
+    time2 = ts.utc(datetime.fromtimestamp(endTime).astimezone(pytz.utc))
     earth_loc = Topos(latitude_degrees=lat, longitude_degrees=lng)
-
     t, y = almanac.find_discrete(time, time2, body_above_angle(planets, 'sun', ANGLE_THRESHOLD, earth_loc), epsilon=(1/DAY_S), num=6)
-    # print([x.utc_datetime().isoformat() for x in t], y)
 
-    rise_times = [int(x.utc_datetime().timestamp()) for i, x in enumerate(t) if y[i] == True]
-    set_times = [int(x.utc_datetime().timestamp()) for i, x in enumerate(t) if y[i] == False]
+    times_dict = {}
+    for i, v in enumerate(t):
+        dt = v.utc_datetime()
+        dt_str = dt.date().isoformat()
 
-    return {
-        'rise': rise_times,
-        'set': set_times
-    }
+        if (dt_str not in times_dict):
+            times_dict[dt_str] = {}
+        
+        key = 'rise' if y[i] == True else 'set'
+        times_dict[dt_str][key] = int(dt.timestamp())
+
+    return times_dict
 
 
 def sun_moon_info(lat, lng, startTime, endTime=None):

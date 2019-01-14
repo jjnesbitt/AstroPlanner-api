@@ -6,7 +6,7 @@ import pytz
 from datetime import datetime, time
 from dateutil import parser
 from credentials import DARK_SKY_SECRET
-from sun_moon import sun_moon_info
+from sun_moon import sun_moon_info, moon_illuminated
 
 #######################
 # Constants
@@ -53,29 +53,36 @@ def forecast(lat=GLENS_FALLS_LAT, lng=GLENS_FALLS_LONG):
     if (error != None):
         return {'status': status, 'error': error}
 
+    moon_phases = {}
     for day in res['daily']['data']:
-        #Do something with moon calls
-        continue
-    
-    startTime = res['daily']['data'][0]['time']
-    endTime = res['daily']['data'][len(res['hourly']['data']) - 1]['time'] + DAY_S
+        date = datetime.fromtimestamp(day['time']).date()
+        moon_phases[date.isoformat()] = moon_illuminated(day['time'])
 
+    startTime = res['daily']['data'][0]['time']
+    endTime = res['daily']['data'][len(res['daily']['data']) - 1]['time'] + DAY_S
     sun_moon_times = sun_moon_info(lat, lng, startTime=startTime, endTime=endTime)
-    return res
 
     for hour in res['hourly']['data']:
-        # current_sun_moon_info = sun_moon_info(lat, lng, hour['time'])
+        dt = datetime.fromtimestamp(hour['time'])
+        date_str = dt.date().isoformat()
 
-        # hour['dark'] = not current_sun_moon_info['sun']['above_astro_twilight']
-        hour['dark'] = not current_sun_moon_info['sun']['above_astro_twilight']
-        # hour['moonVisible'] = current_sun_moon_info['moon']['above_horizon']
-        hour['moonVisible'] = current_sun_moon_info['moon']['above_horizon']
+        hour['dark'] = (hour['time'] < sun_moon_times['sun'][date_str]['rise'] or hour['time'] > sun_moon_times['sun'][date_str]['set'])
+
+        if ('rise' not in sun_moon_times['moon'][date_str]):
+            hour['moonVisible'] = (hour['time'] < sun_moon_times['moon'][date_str]['set'])
+        elif ('set' not in sun_moon_times['moon'][date_str]):
+            hour['moonVisible'] = (hour['time'] > sun_moon_times['moon'][date_str]['rise'])
+        else:
+            if (sun_moon_times['moon'][date_str]['set'] < sun_moon_times['moon'][date_str]['rise']):
+                hour['moonVisible'] = (hour['time'] < sun_moon_times['moon'][date_str]['rise'] or hour['time'] > sun_moon_times['moon'][date_str]['set'])
+            else:
+                hour['moonVisible'] = (hour['time'] > sun_moon_times['moon'][date_str]['rise'] and hour['time'] < sun_moon_times['moon'][date_str]['set'])
 
         if (not hour['dark']):
             hour['viability'] = 0
         else:
             hour['viability'] = 1 - (hour['cloudCover']
-                + current_sun_moon_info['moon']['frac'])/2 if hour['moonVisible'] else 1 - hour['cloudCover']
+                + moon_phases[date_str])/2 if hour['moonVisible'] else 1 - hour['cloudCover']
 
     res['status'] = status
     return res
