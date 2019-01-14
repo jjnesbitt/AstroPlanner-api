@@ -11,7 +11,7 @@ planets = load('./de421.bsp')
 
 earth = planets['earth']
 
-ONE_DAY_SECONDS = 86400
+DAY_S = 86400
 
 '''
 lat, lng should be float values
@@ -54,7 +54,7 @@ def moon_info(lat, lng, startTime, endTime=None, ANGLE_THRESHOLD=-0.8333):
     if (endTime == None):
         # timestamp = datetime.now().timestamp()
         # time = ts.now().astimezone(pytz.utc)
-        endTime = startTime + ONE_DAY_SECONDS
+        endTime = startTime + DAY_S
 
     time = datetime.fromtimestamp(startTime).astimezone(pytz.utc)
     time2 = datetime.fromtimestamp(endTime).astimezone(pytz.utc)
@@ -66,11 +66,11 @@ def moon_info(lat, lng, startTime, endTime=None, ANGLE_THRESHOLD=-0.8333):
     # moon = planets['moon']
     earth_loc = Topos(latitude_degrees=lat, longitude_degrees=lng)
 
-    t, y = almanac.find_discrete(time, time2, body_above_angle(planets, 'moon', ANGLE_THRESHOLD, earth_loc))
+    t, y = almanac.find_discrete(time, time2, body_above_angle(planets, 'moon', ANGLE_THRESHOLD, earth_loc), epsilon=(1/DAY_S), num=6)
     # print([x.utc_datetime().isoformat() for x in t], y)
 
-    rise_times = [x.utc_datetime().timestamp() for i, x in enumerate(t) if y[i] == True]
-    set_times = [x.utc_datetime().timestamp() for i, x in enumerate(t) if y[i] == False]
+    rise_times = [int(x.utc_datetime().timestamp()) for i, x in enumerate(t) if y[i] == True]
+    set_times = [int(x.utc_datetime().timestamp()) for i, x in enumerate(t) if y[i] == False]
 
     return {
         'rise': rise_times,
@@ -93,7 +93,7 @@ def sun_info(lat, lng, startTime, endTime=None, ANGLE_THRESHOLD=-18.0):
     if (endTime == None):
         # timestamp = datetime.now().timestamp()
         # time = ts.now().astimezone(pytz.utc)
-        endTime = startTime + ONE_DAY_SECONDS
+        endTime = startTime + DAY_S
 
     time = datetime.fromtimestamp(startTime).astimezone(pytz.utc)
     time2 = datetime.fromtimestamp(endTime).astimezone(pytz.utc)
@@ -107,11 +107,11 @@ def sun_info(lat, lng, startTime, endTime=None, ANGLE_THRESHOLD=-18.0):
     # loc = earth + earth_loc
     earth_loc = Topos(latitude_degrees=lat, longitude_degrees=lng)
 
-    t, y = almanac.find_discrete(time, time2, body_above_angle(planets, 'sun', ANGLE_THRESHOLD, earth_loc))
+    t, y = almanac.find_discrete(time, time2, body_above_angle(planets, 'sun', ANGLE_THRESHOLD, earth_loc), epsilon=(1/DAY_S), num=6)
     # print([x.utc_datetime().isoformat() for x in t], y)
 
-    rise_times = [x.utc_datetime().timestamp() for i, x in enumerate(t) if y[i] == True]
-    set_times = [x.utc_datetime().timestamp() for i, x in enumerate(t) if y[i] == False]
+    rise_times = [int(x.utc_datetime().timestamp()) for i, x in enumerate(t) if y[i] == True]
+    set_times = [int(x.utc_datetime().timestamp()) for i, x in enumerate(t) if y[i] == False]
 
     return {
         'rise': rise_times,

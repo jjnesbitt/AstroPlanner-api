@@ -116,12 +116,18 @@ def forecast(lat=GLENS_FALLS_LAT, lng=GLENS_FALLS_LONG):
     for day in res['daily']['data']:
         #Do something with moon calls
         continue
-        
-
+    
+    startTime = res['hourly']['data'][0]['time']
+    endTime = res['hourly']['data'][len(res['hourly']['data']) - 1]['time']
+    sun_moon_times = sun_moon_info(lat, lng, startTime=startTime, endTime=endTime)
+    return res
+    
     for hour in res['hourly']['data']:
-        current_sun_moon_info = sun_moon_info(lat, lng, hour['time'])
+        # current_sun_moon_info = sun_moon_info(lat, lng, hour['time'])
 
+        # hour['dark'] = not current_sun_moon_info['sun']['above_astro_twilight']
         hour['dark'] = not current_sun_moon_info['sun']['above_astro_twilight']
+        # hour['moonVisible'] = current_sun_moon_info['moon']['above_horizon']
         hour['moonVisible'] = current_sun_moon_info['moon']['above_horizon']
 
         if (not hour['dark']):
