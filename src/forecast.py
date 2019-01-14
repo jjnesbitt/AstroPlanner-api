@@ -17,11 +17,11 @@ DARK_SKY_API_PATH = 'https://api.darksky.net/forecast/' + DARK_SKY_SECRET
 
 SUNRISE_SUNSET_BASE_PATH = 'https://api.sunrise-sunset.org/json'
 SUNRISE_SUNSET_FILE = '../data/sun_times.json'
-ONE_DAY_SECONDS = 86400
+DAY_S = 86400
 #######################
 
 
-def raw_forecast(lat=GLENS_FALLS_LAT, lng=GLENS_FALLS_LONG):
+def dark_sky_forecast(lat=GLENS_FALLS_LAT, lng=GLENS_FALLS_LONG):
     res = None
     params = {'extend': 'hourly', 'exclude': ['minutely']}
     headers = {'content-encoding': 'gzip'}
@@ -35,71 +35,11 @@ def raw_forecast(lat=GLENS_FALLS_LAT, lng=GLENS_FALLS_LONG):
         return None
 
 
-def get_sunrise_sunset_info(current_time=datetime.now(), lat=GLENS_FALLS_LAT, lng=GLENS_FALLS_LONG):
-    res = None
-    params = {'lat': lat, 'lng': lng,
-              'date': current_time.date().isoformat(), 'formatted': 0}
-    error = False
-
-    try:
-        res = requests.get(SUNRISE_SUNSET_BASE_PATH, params=params)
-    except:
-        error = True
-
-    res = json.loads(res.text)
-
-    if (error or res['status'] != 'OK'):
-        print("Error retrieving forcast")
-        return None
-
-    res = res['results']
-    res = {k: parser.parse(v).timestamp()
-           for k, v in res.items() if k != 'day_length'}
-    return res
-
-
-def get_moon_info(current_time=datetime.now().timestamp(), tz='US/Eastern', lat=GLENS_FALLS_LAT, lng=GLENS_FALLS_LONG):
-    lat_string_pair = "{:.4f}".format(lat).split('.')
-    lng_string_pair = "{:.4f}".format(lng).split('.')
-
-    lat_tuple = (
-        int(lat_string_pair[0]),
-        int(lat_string_pair[1][:2]),
-        int(lat_string_pair[1][2:])
-    )
-    lng_tuple = (
-        int(lng_string_pair[0]),
-        int(lng_string_pair[1][:2]),
-        int(lng_string_pair[1][2:])
-    )
-
-    current_time = datetime.fromtimestamp(current_time)
-    Moon = pylunar.MoonInfo(lat_tuple, lng_tuple)
-    Moon.update(current_time.utctimetuple()[:6])
-
-    rise_set_times = Moon.rise_set_times(tz)
-
-    info = {}
-    for k, v in rise_set_times:
-        if isinstance(v, str):
-            top = datetime.combine(
-                current_time.date(), time(0, 0, 0)).timestamp()
-            if k == 'rise':
-                info[k] = top
-            elif k == 'set':
-                info[k] = top + ONE_DAY_SECONDS
-        else:
-            info[k] = datetime(*v, 0, pytz.timezone(tz)).timestamp()
-
-    info['frac'] = Moon.fractional_phase()
-    return info
-
-
 def forecast(lat=GLENS_FALLS_LAT, lng=GLENS_FALLS_LONG):
     status = 'OK'
     error = None
 
-    res = raw_forecast(lat, lng)
+    res = dark_sky_forecast(lat, lng)
     if (res is None):
         status = 'Error'
         error = "Error Retrieving Forecast"
@@ -117,11 +57,12 @@ def forecast(lat=GLENS_FALLS_LAT, lng=GLENS_FALLS_LONG):
         #Do something with moon calls
         continue
     
-    startTime = res['hourly']['data'][0]['time']
-    endTime = res['hourly']['data'][len(res['hourly']['data']) - 1]['time']
+    startTime = res['daily']['data'][0]['time']
+    endTime = res['daily']['data'][len(res['hourly']['data']) - 1]['time'] + DAY_S
+
     sun_moon_times = sun_moon_info(lat, lng, startTime=startTime, endTime=endTime)
     return res
-    
+
     for hour in res['hourly']['data']:
         # current_sun_moon_info = sun_moon_info(lat, lng, hour['time'])
 

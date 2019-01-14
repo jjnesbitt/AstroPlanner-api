@@ -56,18 +56,10 @@ def moon_info(lat, lng, startTime, endTime=None, ANGLE_THRESHOLD=-0.8333):
         # time = ts.now().astimezone(pytz.utc)
         endTime = startTime + DAY_S
 
-    time = datetime.fromtimestamp(startTime).astimezone(pytz.utc)
-    time2 = datetime.fromtimestamp(endTime).astimezone(pytz.utc)
-    
-    # Convert to one liner later
-    time = ts.utc(time)
-    time2 = ts.utc(time2)
-
-    # moon = planets['moon']
+    time = ts.utc(datetime.fromtimestamp(startTime).astimezone(pytz.utc))
+    time2 = ts.utc(datetime.fromtimestamp(endTime).astimezone(pytz.utc))
     earth_loc = Topos(latitude_degrees=lat, longitude_degrees=lng)
-
     t, y = almanac.find_discrete(time, time2, body_above_angle(planets, 'moon', ANGLE_THRESHOLD, earth_loc), epsilon=(1/DAY_S), num=6)
-    # print([x.utc_datetime().isoformat() for x in t], y)
 
     rise_times = [int(x.utc_datetime().timestamp()) for i, x in enumerate(t) if y[i] == True]
     set_times = [int(x.utc_datetime().timestamp()) for i, x in enumerate(t) if y[i] == False]
