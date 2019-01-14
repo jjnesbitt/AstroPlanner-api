@@ -12,8 +12,11 @@ import main
 GLENS_FALLS_LAT = 43.3095
 GLENS_FALLS_LONG = -73.6440
 
+TEST_LAT = 29.9479
+TEST_LONG = -85.4179
+
 start = time.time()
-res = forecast.forecast(lat=GLENS_FALLS_LAT, lng=GLENS_FALLS_LONG)
+res = forecast.forecast(lat=TEST_LAT, lng=TEST_LONG)
 end = time.time()
 print("runtime of forecast", end - start)
 

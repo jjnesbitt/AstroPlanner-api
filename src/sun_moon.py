@@ -43,7 +43,7 @@ def body_above_angle(ephemeris, body, angle, topos):
 def moon_illuminated(time):
     return almanac.fraction_illuminated(planets, 'moon', ts.utc(datetime.fromtimestamp(time).astimezone(pytz.utc)))
 
-def moon_info(lat, lng, startTime, endTime=None, ANGLE_THRESHOLD=-0.8333):
+def moon_info(lat, lng, tz, startTime, endTime=None, ANGLE_THRESHOLD=-0.8333):
     """Returns information about the moon, between the start and end time. 
     If endTime is not specified, the passed startTime will be treated as the start of
     the day, and the end time will be 24 hours after the startTime. Start and End times 
@@ -55,8 +55,8 @@ def moon_info(lat, lng, startTime, endTime=None, ANGLE_THRESHOLD=-0.8333):
     if (endTime == None):
         endTime = startTime + DAY_S
 
-    time = ts.utc(datetime.fromtimestamp(startTime).astimezone(pytz.utc))
-    time2 = ts.utc(datetime.fromtimestamp(endTime).astimezone(pytz.utc))
+    time = ts.utc(datetime.fromtimestamp(startTime).astimezone(tz))
+    time2 = ts.utc(datetime.fromtimestamp(endTime).astimezone(tz))
     earth_loc = Topos(latitude_degrees=lat, longitude_degrees=lng)
     t, y = almanac.find_discrete(time, time2, body_above_angle(planets, 'moon', ANGLE_THRESHOLD, earth_loc), epsilon=(1/DAY_S), num=6)
 
@@ -74,7 +74,7 @@ def moon_info(lat, lng, startTime, endTime=None, ANGLE_THRESHOLD=-0.8333):
     return times_dict
 
 
-def sun_info(lat, lng, startTime, endTime=None, ANGLE_THRESHOLD=-18.0):
+def sun_info(lat, lng, tz, startTime, endTime=None, ANGLE_THRESHOLD=-18.0):
     """Returns information about the sun, between the start and end time. 
     If endTime is not specified, the passed startTime will be treated as the start of
     the day, and the end time will be 24 hours after the startTime. Start and End times 
@@ -86,8 +86,8 @@ def sun_info(lat, lng, startTime, endTime=None, ANGLE_THRESHOLD=-18.0):
     if (endTime == None):
         endTime = startTime + DAY_S
 
-    time = ts.utc(datetime.fromtimestamp(startTime).astimezone(pytz.utc))
-    time2 = ts.utc(datetime.fromtimestamp(endTime).astimezone(pytz.utc))
+    time = ts.utc(datetime.fromtimestamp(startTime).astimezone(tz))
+    time2 = ts.utc(datetime.fromtimestamp(endTime).astimezone(tz))
     earth_loc = Topos(latitude_degrees=lat, longitude_degrees=lng)
     t, y = almanac.find_discrete(time, time2, body_above_angle(planets, 'sun', ANGLE_THRESHOLD, earth_loc), epsilon=(1/DAY_S), num=6)
 
@@ -105,9 +105,9 @@ def sun_info(lat, lng, startTime, endTime=None, ANGLE_THRESHOLD=-18.0):
     return times_dict
 
 
-def sun_moon_info(lat, lng, startTime, endTime=None):
+def sun_moon_info(lat, lng, tz, startTime, endTime=None):
     info = {}
-    info['sun'] = sun_info(lat, lng, startTime, endTime)
-    info['moon'] = moon_info(lat, lng, startTime, endTime)
+    info['sun'] = sun_info(lat, lng, tz, startTime, endTime)
+    info['moon'] = moon_info(lat, lng, tz, startTime, endTime)
 
     return info
