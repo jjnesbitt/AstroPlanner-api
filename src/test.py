@@ -26,7 +26,7 @@ print("runtime of forecast", end - start)
 # print("runtime of dark_sky_forecast", end - start)
 
 start = time.time()
-res = sun_moon.sun_moon_info(lat=GLENS_FALLS_LAT, lng=GLENS_FALLS_LONG, startTime=datetime.now().timestamp(), endTime=datetime.now().timestamp() + 86400*7)
+res = sun_moon.sun_moon_info(GLENS_FALLS_LAT, GLENS_FALLS_LONG, pytz.timezone('America/New_York'), startTime=datetime.now().timestamp(), endTime=datetime.now().timestamp() + 86400*7)
 moon_frac = sun_moon.moon_illuminated(datetime.now().timestamp())
 end = time.time()
 # print(json.dumps(res, indent=4))

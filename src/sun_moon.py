@@ -62,7 +62,7 @@ def moon_info(lat, lng, tz, startTime, endTime=None, ANGLE_THRESHOLD=-0.8333):
 
     times_dict = {}
     for i, v in enumerate(t):
-        dt = v.utc_datetime()
+        dt = v.utc_datetime().astimezone(tz)
         dt_str = dt.date().isoformat()
 
         if (dt_str not in times_dict):
@@ -93,7 +93,7 @@ def sun_info(lat, lng, tz, startTime, endTime=None, ANGLE_THRESHOLD=-18.0):
 
     times_dict = {}
     for i, v in enumerate(t):
-        dt = v.utc_datetime()
+        dt = v.utc_datetime().astimezone(tz)
         dt_str = dt.date().isoformat()
 
         if (dt_str not in times_dict):
