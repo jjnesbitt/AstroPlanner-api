@@ -61,7 +61,6 @@ def forecast(lat=GLENS_FALLS_LAT, lng=GLENS_FALLS_LONG):
     startTime = res['daily']['data'][0]['time']
     endTime = res['daily']['data'][len(res['daily']['data']) - 1]['time'] + DAY_S
     sun_moon_times = sun_moon_info(lat, lng, pytz.timezone(res['timezone']), startTime=startTime, endTime=endTime)
-    print(json.dumps(sun_moon_times, indent=4))
 
     for hour in res['hourly']['data']:
         dt = datetime.fromtimestamp(hour['time']).astimezone(pytz.timezone(res['timezone']))
