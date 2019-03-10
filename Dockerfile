@@ -1,12 +1,12 @@
-#FROM python:3.6-alpine
-FROM alpine:3.7
+FROM python:3.6-alpine
 
 COPY ./src ./requirements.txt /app/
 WORKDIR /app
 
-RUN apk add --update --no-cache python3 python3-pip uwsgi-python3
+RUN apk add --update --no-cache gcc musl-dev linux-headers
+RUN pip install uWSGI
 RUN pip install -r requirements.txt
 
 EXPOSE 8000
 
-CMD ["uwsgi --http :8000 --wsgisrc/wsgi.py"]
+CMD ["uwsgi", "--http", ":8000", "--wsgi", "wsgi"]
